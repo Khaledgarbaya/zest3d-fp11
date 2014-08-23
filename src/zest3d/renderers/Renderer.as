@@ -17,7 +17,7 @@ package zest3d.renderers
 	import io.plugin.math.algebra.APoint;
 	import io.plugin.math.algebra.AVector;
 	import io.plugin.math.algebra.HMatrix;
-	import zest3d.effects.global.GlobalEffect;
+	import zest3d.globaleffects.GlobalEffect;
 	import zest3d.renderers.interfaces.IIndexBuffer;
 	import zest3d.renderers.interfaces.IPixelShader;
 	import zest3d.renderers.interfaces.IRenderTarget;
@@ -948,7 +948,6 @@ package zest3d.renderers
 		
 		public function readColor( i: int, renderTarget: RenderTarget, texture: TextureRectangle ): void
 		{
-			trace( "yes...I'm called." );
 			for ( var target:* in _renderTargets )
 			{
 				target.readColor( i, this, texture );
@@ -1159,7 +1158,6 @@ package zest3d.renderers
 				point = _camera.position;
 				
 				origin.set( point.x, point.y, point.z );
-				//TODO .... POSSIBLE ERROR WITH RAY CAST HERE!!!!
 				vector = _camera.dVector.scale( _camera.dMin ).add( _camera.rVector.scale( rBlend ) ).add ( _camera.uVector.scale( uBlend ) );
 				vector.normalize();
 				

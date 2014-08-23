@@ -15,6 +15,7 @@ package zest3d.primitives
 	import zest3d.resources.IndexBuffer;
 	import zest3d.resources.VertexBuffer;
 	import zest3d.resources.VertexFormat;
+	import zest3d.scenegraph.enum.UpdateType;
 	import zest3d.scenegraph.TriMesh;
 	import zest3d.shaders.states.CullState;
 	
@@ -28,9 +29,27 @@ package zest3d.primitives
 		public function Primitive( vFormat:VertexFormat, vertexBuffer:VertexBuffer, indexBuffer:IndexBuffer ) 
 		{
 			super( vFormat, vertexBuffer, indexBuffer );
+			updateModelSpaceVBA();
 		}
 		
-		protected function generateVertexFormat( hasTexCoords:Boolean, hasNormals:Boolean ):VertexFormat
+		protected function updateModelSpaceVBA():void
+		{
+			trace( "has normals " + _vba.hasNormal() );
+			
+			if ( _vba.hasTangent() || _vba.hasBinormal() )
+			{
+				if ( _vba.hasTCoord(0) )
+				{
+					updateModelSpace( UpdateType.USE_TCOORD_CHANNEL );
+				}
+				else
+				{
+					updateModelSpace( UpdateType.USE_GEOMETRY );
+				}
+			}
+		}
+		
+		protected function generateVertexFormat( hasTexCoords:Boolean  = false, hasNormals:Boolean  = false, hasBinormals:Boolean = false, hasTangents:Boolean  = false ):VertexFormat
 		{
 			var numAttributes:Number = 0;
 			var index:Number = 0;
@@ -38,6 +57,7 @@ package zest3d.primitives
 			var stride:Number = 0;
 			
 			numAttributes++;
+			
 			if ( hasTexCoords )
 			{
 				numAttributes++;
@@ -46,13 +66,21 @@ package zest3d.primitives
 			{
 				numAttributes++;
 			}
+			if ( hasBinormals )
+			{
+				numAttributes++;
+			}
+			if ( hasTangents )
+			{
+				numAttributes++;
+			}
 			var vFormat:VertexFormat = new VertexFormat( numAttributes );
 			
 			// positions
 			vFormat.setAttribute( index, 0, offset, AttributeUsageType.POSITION, AttributeType.FLOAT3, 0 );
-			offset += 3*4;
-			index++;
+			offset += 12;
 			stride += 12;
+			index++;
 			
 			// texcoords
 			if ( hasTexCoords )
@@ -72,6 +100,25 @@ package zest3d.primitives
 				stride += 12;
 			}
 			
+			// binormals
+			if ( hasBinormals )
+			{
+				vFormat.setAttribute( index, 0, offset, AttributeUsageType.BINORMAL, AttributeType.FLOAT3, 0 );
+				offset += 3*4;
+				index++;
+				stride += 12;
+			}
+			
+			
+			// tangents
+			if ( hasTangents )
+			{
+				vFormat.setAttribute( index, 0, offset, AttributeUsageType.TANGENT, AttributeType.FLOAT3, 0 );
+				offset += 3*4;
+				index++;
+				stride += 12;
+			}
+			
 			vFormat.stride = stride;
 			
 			return vFormat;
@@ -85,7 +132,7 @@ package zest3d.primitives
 			{
 				for ( i = 0; i < effect.numPasses; ++i )
 				{
-					cullState = effect.getPass( 0 ).cullState;
+					cullState = effect.getPass( i ).cullState;
 					cullState.enabled = false;
 				}
 			}
@@ -93,7 +140,7 @@ package zest3d.primitives
 			{
 				for ( i = 0; i < effect.numPasses; ++i )
 				{
-					cullState = effect.getPass( 0 ).cullState;
+					cullState = effect.getPass( i ).cullState;
 					cullState.enabled = true;
 				}
 			}
